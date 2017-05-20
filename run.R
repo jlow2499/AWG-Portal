@@ -501,8 +501,8 @@ Vendor$CM_LAST_WORK_DATE[is.na(Vendor$CM_LAST_WORK_DATE)] <- "2000-01-01"
 
 Vendor <- Vendor %>%
   mutate(Not_Worked_in_72 = ifelse((Sys.Date()-CM_LAST_WORK_DATE) >= 3,"No","Yes"),
-         #    Not_Worked_in_72 = ifelse(is.null(Not_Worked_in_72),"Yes",Not_Worked_in_72),
-         Payer = ifelse(ED_CUR_COND == "COMP" | ED_CUR_COND == "REHAB" | ED_CUR_COND == "REHAB2" | ED_CUR_COND == "REHAB3" | ED_CUR_COND == "PPA",
+     #    Not_Worked_in_72 = ifelse(is.null(Not_Worked_in_72),"Yes",Not_Worked_in_72),
+        Payer = ifelse(ED_CUR_COND == "COMP" | ED_CUR_COND == "REHAB" | ED_CUR_COND == "REHAB2" | ED_CUR_COND == "REHAB3" | ED_CUR_COND == "PPA",
                         "Yes","No"),
          Payer = ifelse(CM_STATUS == "FRW" | CM_STATUS == "FPW" | CM_STATUS == "FSW","Yes",Payer),
          Reject = ifelse(ED_REJD_DATE >= Sys.Date()-180,"Yes","No"),
@@ -514,16 +514,16 @@ Vendor <- Vendor %>%
                                   "Yes","No"),
          Reason = ifelse(Payer =="Yes","Paying Condition",
                          ifelse(Reject == "Yes", "Previously Rejected",
-                                ifelse(Letters == "No", "Needs Letters Sent",
-                                       ifelse(Good_Desk == "No", "Unsweepable Desks",
-                                              ifelse(Payment == "Yes", "Voluntary Payment in Last 45 Days",
-                                                     ifelse(Num_of_Home_Attempts == "No", "Needs Home Attempts",
-                                                            ifelse(Time_Of_Day == "No", "Needs Calls on Different Times of Day",
-                                                                   ifelse(HA_Multiple_Days_of_Week == "No","Needs Calls on Different Days of Week",
-                                                                          ifelse((POE_Attempts <2 & POE_Location_Attempts <7), "Needs POE Location Attempts",
-                                                                                 ifelse(POE_Attempts <2, "Needs POE Attempts","Sweepable")))))))))))
-
-
+                         ifelse(Letters == "No", "Needs Letters Sent",
+                         ifelse(Good_Desk == "No", "Unsweepable Desks",
+                         ifelse(Payment == "Yes", "Voluntary Payment in Last 45 Days",
+                         ifelse(Num_of_Home_Attempts == "No", "Needs Home Attempts",
+                         ifelse(Time_Of_Day == "No", "Needs Calls on Different Times of Day",
+                         ifelse(HA_Multiple_Days_of_Week == "No","Needs Calls on Different Days of Week",
+                         ifelse((POE_Attempts <2 & POE_Location_Attempts <7), "Needs POE Location Attempts",
+                         ifelse(POE_Attempts <2, "Needs POE Attempts","Sweepable")))))))))))
+                         
+                  
 
 RGR <- RGR %>%
   mutate(Payer = ifelse(ED_CUR_COND == "COMP" | ED_CUR_COND == "REHAB" | ED_CUR_COND == "REHAB2" | ED_CUR_COND == "REHAB3" | ED_CUR_COND == "PPA",
@@ -539,15 +539,15 @@ RGR <- RGR %>%
                                   "Yes","No"),
          Reason = ifelse(Payer =="Yes","Paying Condition",
                          ifelse(Reject == "Yes", "Previously Rejected",
-                                ifelse(Letters == "No", "Needs Letters Sent",
-                                       ifelse(Good_Desk == "No", "Unsweepable Desks",
-                                              ifelse(Payment == "Yes", "Voluntary Payment in Last 45 Days",
-                                                     ifelse(Num_of_Home_Attempts == "No", "Needs Home Attempts",
-                                                            ifelse(Time_Of_Day == "No", "Needs Calls on Different Times of Day",
-                                                                   ifelse(HA_Multiple_Days_of_Week == "No","Needs Calls on Different Days of Week",
-                                                                          ifelse((POE_Attempts <2 & POE_Location_Attempts <7), "Needs POE Location Attempts",
-                                                                                 ifelse(POE_Attempts <2, "Needs POE Attempts",
-                                                                                        ifelse(Verified=="No","Needs 2 Screen Verification Date W/I Last 150 Days","Sweepable"))))))))))))
+                         ifelse(Letters == "No", "Needs Letters Sent",
+                         ifelse(Good_Desk == "No", "Unsweepable Desks",
+                         ifelse(Payment == "Yes", "Voluntary Payment in Last 45 Days",
+                         ifelse(Num_of_Home_Attempts == "No", "Needs Home Attempts",
+                         ifelse(Time_Of_Day == "No", "Needs Calls on Different Times of Day",
+                         ifelse(HA_Multiple_Days_of_Week == "No","Needs Calls on Different Days of Week",
+                         ifelse((POE_Attempts <2 & POE_Location_Attempts <7), "Needs POE Location Attempts",
+                         ifelse(POE_Attempts <2, "Needs POE Attempts",
+                         ifelse(Verified=="No","Needs 2 Screen Verification Date W/I Last 150 Days","Sweepable"))))))))))))
 
 
 POE <- POE %>%
@@ -564,15 +564,15 @@ POE <- POE %>%
                                   "Yes","No"),
          Reason = ifelse(Payer =="Yes","Paying Condition",
                          ifelse(Reject == "Yes", "Previously Rejected",
-                                ifelse(Letters == "No", "Needs Letters Sent",
-                                       ifelse(Good_Desk == "No", "Unsweepable Desks",
-                                              ifelse(Payment == "Yes", "Voluntary Payment in Last 45 Days",
-                                                     ifelse(Num_of_Home_Attempts == "No", "Needs Home Attempts",
-                                                            ifelse(Time_Of_Day == "No", "Needs Calls on Different Times of Day",
-                                                                   ifelse(HA_Multiple_Days_of_Week == "No","Needs Calls on Different Days of Week",
-                                                                          ifelse((POE_Attempts <2 & POE_Location_Attempts <7), "Needs POE Location Attempts",
-                                                                                 ifelse(POE_Attempts <2, "Needs POE Attempts",
-                                                                                        ifelse(Verified=="No","Needs 2 Screen Verification Date W/I Last 150 Days","Sweepable"))))))))))))
+                         ifelse(Letters == "No", "Needs Letters Sent",
+                         ifelse(Good_Desk == "No", "Unsweepable Desks",
+                         ifelse(Payment == "Yes", "Voluntary Payment in Last 45 Days",
+                         ifelse(Num_of_Home_Attempts == "No", "Needs Home Attempts",
+                         ifelse(Time_Of_Day == "No", "Needs Calls on Different Times of Day",
+                         ifelse(HA_Multiple_Days_of_Week == "No","Needs Calls on Different Days of Week",
+                         ifelse((POE_Attempts <2 & POE_Location_Attempts <7), "Needs POE Location Attempts",
+                         ifelse(POE_Attempts <2, "Needs POE Attempts",
+                         ifelse(Verified=="No","Needs 2 Screen Verification Date W/I Last 150 Days","Sweepable"))))))))))))
 
 
 ARMASTER <- read.csv("//KNX1FS01/ED Reporting/Lowhorn Big Data/Golden Rule Data/ARMASTER.csv", stringsAsFactors=FALSE)
@@ -672,7 +672,7 @@ Summary <- Vendor %>%
             Activated_With_Order = Orders_Sent/Files_Activated,
             GAR_Pay_Last_30 = sum((Sys.Date()-30)<=ED_LAST_GARN_PMT_DT),
             GAR_Pay_Last_90 = sum((Sys.Date()-90)<=ED_LAST_GARN_PMT_DT)
-  )%>%
+            )%>%
   ungroup() %>% 
   arrange((Batch.Date))
 
@@ -819,3 +819,6 @@ RGR <- RGR[!duplicated(RGR$CM_FILENO),]
 
 setwd("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Application File")
 runApp(host="0.0.0.0",port=5070)
+
+
+
