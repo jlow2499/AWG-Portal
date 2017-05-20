@@ -7,12 +7,14 @@ library(scales)
 library(ggthemes)
 library(DT)
 library(rhandsontable)
+library(plotly)
+library(rjson)
 
 currmonth = format(Sys.Date()-1,"%B %Y")
 
 NSABAN <- read.csv("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/AWG_AR.csv", stringsAsFactors=TRUE)
-
-
+VPUTIN <- read.csv("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/AWG_CLIENT.csv", stringsAsFactors=TRUE)
+NINE <- read.csv("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/Jew.csv", stringsAsFactors=TRUE)
 
 
 # save the results to a file
@@ -46,8 +48,8 @@ responses <- responses[responses$Checked == "No",]
 responsesDir <- file.path("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data")
 
 Logged = FALSE;
-PASSWORD <- data.frame(Brukernavn = c("MGRAVES","GHURD","JRODERMUND","JBELL","AHEINRICH","JROSE","JLOWHORN"),
-                       Passord = c("MGRAVES2017","GHURD2017","JRODERMUND2017","JBELL2017","AHEINRICH2017","JROSE2017","Rjys-548"))
+PASSWORD <- data.frame(Brukernavn = c("KCRUZE","GHURD","JRODERMUND","JBELL","AHEINRICH","MROSE","JLOWHORN","THAMPTON"),
+                       Passord = c("CRUZIN","GHURD2017","JRODERMUND2017","JBELL2017","AHEINRICH2017","MROSE2017","Rjys-548","bNg0neM0th63"))
 
 
 sidebar <- dashboardSidebar(
@@ -74,7 +76,8 @@ sidebar <- dashboardSidebar(
     menuItem("Activations Report",tabName="ACTRPT",icon=icon("credit-card"),
              menuSubItem("AWG AR Breakdown",tabName="ARBRK"),
              menuSubItem("Office Breakdown",tabName="OFFBRK"),
-             menuSubItem("Activations to Rehab Report",tabName="ACTTORHB")
+             menuSubItem("Activations to Rehab Report",tabName="ACTTORHB"),
+             menuSubItem("Total Activations Chart",tabName="d3plot")
              )
     
   )
@@ -284,9 +287,30 @@ body <- dashboardBody(
             )
             
             
+            ),
+    tabItem(tabName="OFFBRK",
+    fluidRow(
+      column(width=4),
+      column(width=4,
+             selectInput("ofmonth","Select Month",choices=levels(VPUTIN$Month),selected=currmonth)
+      )
+    ),
+    fluidRow(
+      dataTableOutput("PUTIN")
+    )),
+    tabItem(tabName="ACTTORHB",
+            plotlyOutput("plot")),
+    tabItem(tabName="d3plot",
+   
+          fluidRow(column(width=4),h2("Activations by Month Faceted by Office")),
+           fluidRow(
+            includeHTML("index.html")
+           ),
+           fluidRow(h2("Learn D3.js at:",
+                        tags$a(href="https://github.com/d3/d3/wiki/Gallery","d3js.org")))
+    
             )
-            )
-    )
+    ))
 
 
 
@@ -394,8 +418,25 @@ server <- function(input, output,session) {
                 width="50%")
   })
   
+  
+  summs <- reactive({
+    Summary <- read.csv("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/Summary.csv",stringsAsFactors=T)
+    Summary <- plyr::rename(Summary,c("Batch.Date"="Batch Date",
+                                      "Files.Received"="Files Received",
+                                      "Files.Activated"="Files Activated",
+                                      "Percent.Activated"="Percent Activated",
+                                      "Voluntary.Payers"="Voluntary Payers",
+                                      "Percent.Paying"="Percent Paying",
+                                      "Orders.Sent"="Orders Sent",
+                                      "Activated.With.Order"="Activated With Order",
+                                      "GAR.Payment.in.Last.30.Days"="GAR Payment in Last 30 Days",
+                                      "GAR.Payment.in.Last.90.Days"="GAR Payment in Last 90 Days"))
+    
+    Summary
+  })
+
   output$vendorsummary <- DT::renderDataTable({
-    table <- datatable(Summary,extensions = 'TableTools', rownames=FALSE,class = 'cell-border stripe',filter="top",
+    table <- datatable(summs(),extensions = 'TableTools', rownames=FALSE,class = 'cell-border stripe',filter="top",
                        options = list(
                          searching=TRUE,
                          autoWidth=TRUE,
@@ -834,7 +875,9 @@ server <- function(input, output,session) {
   )
   
   saban <- reactive({
-    NSABAN <- NSABAN %>% select(A.R, manager,Month, MonthlyActivations,TotalActivations,WG19_Sent,
+    NSABAN <- read.csv("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/AWG_AR.csv", stringsAsFactors=TRUE)
+    
+    NSABAN <-  select(NSABAN,A.R, manager,Month, MonthlyActivations,TotalActivations,WG19_Sent,
                                 OW1_Sent,OW2_Sent,TotalGAR,TotalVol,TotalCollected,Resolutions,
                                 SuccessRate)
     
@@ -858,6 +901,8 @@ server <- function(input, output,session) {
   
   
   output$SABAN <- DT::renderDataTable({
+    
+    
     table <- datatable(saban(),extensions = 'TableTools', rownames=FALSE,class = 'cell-border stripe',filter="top",
                        options = list(
                          searching=TRUE,
@@ -874,8 +919,74 @@ server <- function(input, output,session) {
                                   "sButtonText" = "Save",
                                   "aButtons" = c("csv","xls"))))))
     
+    table <- formatCurrency(table,"Total GAR $")
+    table <- formatCurrency(table,"Total Voluntary Direct")
+    table <- formatCurrency(table,"Total Direct Collect")
+    table <- formatPercentage(table,"Success Rate",digits=2)
+    
     table
   })
+  
+  putin <- reactive({
+    
+    VPUTIN <- read.csv("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/AWG_CLIENT.csv", stringsAsFactors=TRUE)
+    
+    
+    VPUTIN <- VPUTIN %>% select(CM_CLIENT,Month, MonthlyActivations,TotalActivations,WG19_Sent,
+                                OW1_Sent,OW2_Sent,TotalGAR,TotalVol,TotalCollected,Resolutions,
+                                SuccessRate)
+    
+    VPUTIN <- plyr::rename(VPUTIN,c("CM_CLIENT"="Client",
+                                    "MonthlyActivations"="Activations",
+                                    "TotalActivations"="Activations Since Start",
+                                    "WG19_Sent"="WG19s Sent",
+                                    "OW1_Sent"="First Orders Sent",
+                                    "OW2_Sent"="Second Orders Sent",
+                                    "TotalGAR"="Total GAR $",
+                                    "TotalVol"="Total Voluntary Direct",
+                                    "TotalCollected"="Total Direct Collect",
+                                    "Resolutions"="Total Payers",
+                                    "SuccessRate"="Success Rate"))
+    VPUTIN <- VPUTIN[VPUTIN$Month == input$ofmonth,]
+    
+    VPUTIN
+    
+  })
+  
+  
+  output$PUTIN <- DT::renderDataTable({
+    table <- datatable(putin(),extensions = 'TableTools', rownames=FALSE,class = 'cell-border stripe',filter="top",
+                       options = list(
+                         searching=TRUE,
+                         autoWidth=TRUE,
+                         paging=F,
+                         
+                         "sDom" = 'T<"clear">lfrtip',
+                         "oTableTools" = list(
+                           "sSwfPath" = "//cdnjs.cloudflare.com/ajax/libs/datatables-tabletools/2.1.5/swf/copy_csv_xls.swf",
+                           "aButtons" = list(
+                             "copy",
+                             "print",
+                             list("sExtends" = "collection",
+                                  "sButtonText" = "Save",
+                                  "aButtons" = c("csv","xls"))))))
+    
+    table <- formatCurrency(table,"Total GAR $")
+    table <- formatCurrency(table,"Total Voluntary Direct")
+    table <- formatCurrency(table,"Total Direct Collect")
+    table <- formatPercentage(table,"Success Rate",digits=2)
+    
+    
+    table
+  })  
+  
+  
+  
+  
+  
+  
+  
+  
   
   output$sweepnrgr <- downloadHandler(
     filename = function() { 
@@ -894,6 +1005,52 @@ server <- function(input, output,session) {
       write.csv(POE, file)
     }
   )
+  
+  
+
+  
+  output$plot <- renderPlotly({
+    p <- NINE %>% count(Month, RHBMONTH)
+    p <- p[!p$RHBMONTH %in%"",]
+    
+    acts <- NINE %>%
+      group_by(Month) %>%
+      summarize(Activations = n())
+    
+    p <- left_join(p,acts,by="Month")
+    rm(acts)
+    
+    p$Month <- factor(p$Month,levels= c("October 2016","November 2016",
+                                        "December 2016","January 2017",
+                                        "February 2017","March 2017",
+                                        "April 2017","May 2017"))
+    p$RHBMONTH <- factor(p$RHBMONTH,levels= c("October 2016","November 2016",
+                                              "December 2016","January 2017",
+                                              "February 2017","March 2017",
+                                              "April 2017","May 2017"))
+    p <- p[!is.na(p$RHBMONTH),]
+    p <- p %>%
+      mutate(Percent = n/Activations)
+    
+   p <- ggplot(p,aes(x=RHBMONTH,y=n,fill=RHBMONTH)) + geom_bar(stat = "identity") + facet_grid(.~Month) +
+      xlab("") + ylab("") + 
+     theme(axis.title=element_text(size=8,color="black")) + theme_igray() + 
+      scale_colour_tableau() + ggtitle("Rehabs by Activation Month") + theme(axis.text.x = element_text(angle = 90)) +
+     theme(plot.margin = unit(c(1,1,1,1), "cm"))
+
+     
+    
+    plot <- ggplotly(p)
+    plot
+  })
+  
+  observeEvent(input$run,{
+    
+    data <- read.csv("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Application File/www/data.csv")
+    data <- toJSON(data)
+    session$sendCustomMessage(type="jsondata",data)
+    
+    })
   
 }
 shinyApp(ui, server)
