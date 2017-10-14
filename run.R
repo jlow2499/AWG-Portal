@@ -3,7 +3,6 @@ library(shiny)
 library(shinydashboard)
 library(stringr)
 library(tidyr)
-library(rpivotTable)
 library(data.table)
 
 Vendor <- read.csv("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/Vendor.csv", stringsAsFactors=FALSE)
@@ -36,81 +35,34 @@ knoxtalx <- rename(knoxtalx, ACCOUNT=CM_FILENO,Date=Batch.Date)
 
 
 CODE <- read.csv("//knx1fs01/ED Reporting/Lowhorn Big Data/Golden Rule Data/CODE.csv")
-#########DILLON HIGHTOWER ADD############
-
-a <- fread("//knx1fs01/ED Reporting/Lowhorn Big Data/Golden Rule Data/a.txt", stringsAsFactors=FALSE) 
-a <- data.frame(a)
-b <-  fread("//knx1fs01/ED Reporting/Lowhorn Big Data/Golden Rule Data/b.txt", stringsAsFactors=FALSE) 
-b <- data.frame(b)
-c <-  fread("//knx1fs01/ED Reporting/Lowhorn Big Data/Golden Rule Data/c.txt", stringsAsFactors=FALSE) 
-c <- data.frame(c)
-d <-  fread("//KNX1FS01/ED Reporting/Lowhorn Big Data/Golden Rule Data/d.csv",header=TRUE,stringsAsFactors = FALSE) 
-d <- data.frame(d)
-e <-  fread("//KNX1FS01/ED Reporting/Lowhorn Big Data/Golden Rule Data/e.csv",header=TRUE,stringsAsFactors = FALSE) 
-e <- data.frame(e)
-f <- fread("//KNX1FS01/ED Reporting/Lowhorn Big Data/Golden Rule Data/f.csv",header=TRUE,stringsAsFactors = FALSE)
-f <- data.frame(f)
-g <-  fread("//KNX1FS01/ED Reporting/Lowhorn Big Data/Golden Rule Data/g.csv",header=TRUE,stringsAsFactors = FALSE)
-g <- data.frame(g)
-h <-  fread("//KNX1FS01/ED Reporting/Lowhorn Big Data/Golden Rule Data/h.csv",header=TRUE,stringsAsFactors = FALSE) 
-h <- data.frame(h)
-i <-  fread("//KNX1FS01/ED Reporting/Lowhorn Big Data/Golden Rule Data/i.csv",header=TRUE,stringsAsFactors = FALSE)
-i <- data.frame(i)
-j <-  fread("//KNX1FS01/ED Reporting/Lowhorn Big Data/Golden Rule Data/j.csv",header=TRUE,stringsAsFactors = FALSE)
-j <- data.frame(j)
-k <-  fread("//KNX1FS01/ED Reporting/Lowhorn Big Data/Golden Rule Data/k.csv",header=TRUE,stringsAsFactors = FALSE) 
-k <- data.frame(k)
-l <-  fread("//KNX1FS01/ED Reporting/Lowhorn Big Data/Golden Rule Data/l.csv",header=TRUE,stringsAsFactors = FALSE)
-l <- data.frame(l)
-m <-  fread("//KNX1FS01/ED Reporting/Lowhorn Big Data/Golden Rule Data/m.csv",header=TRUE,stringsAsFactors = FALSE)
-m <- data.frame(m)
-n <-  fread("//KNX1FS01/ED Reporting/Lowhorn Big Data/Golden Rule Data/n.csv",header=TRUE,stringsAsFactors = FALSE) 
-n <- data.frame(n)
-o <-  fread("//KNX1FS01/ED Reporting/Lowhorn Big Data/Golden Rule Data/o.csv",header=TRUE,stringsAsFactors = FALSE) 
-o <- data.frame(o)
-p <-  fread("//KNX1FS01/ED Reporting/Lowhorn Big Data/Golden Rule Data/p.csv",header=TRUE,stringsAsFactors = FALSE) 
-p <- data.frame(p)
-q <-  fread("//KNX1FS01/ED Reporting/Lowhorn Big Data/Golden Rule Data/q.csv",header=TRUE,stringsAsFactors = FALSE) 
-q <- data.frame(q)
-r <-  fread("//KNX1FS01/ED Reporting/Lowhorn Big Data/Golden Rule Data/r.csv",header=TRUE,stringsAsFactors = FALSE)
-r <- data.frame(r)
-s <-  fread("//KNX1FS01/ED Reporting/Lowhorn Big Data/Golden Rule Data/s.csv",header=TRUE,stringsAsFactors = FALSE) 
-s <- data.frame(s)
-t <- fread("//KNX1FS01/ED Reporting/Lowhorn Big Data/Golden Rule Data/t.csv",header=TRUE,stringsAsFactors = FALSE) 
-t <- data.frame(t)
-u <-  fread("//KNX1FS01/ED Reporting/Lowhorn Big Data/Golden Rule Data/u.csv",header=TRUE,stringsAsFactors = FALSE) 
-u <- data.frame(u)
-v <- fread("//KNX1FS01/ED Reporting/Lowhorn Big Data/Golden Rule Data/v.csv",header=TRUE,stringsAsFactors = FALSE) 
-v <- data.frame(v)
-w <-  fread("//KNX1FS01/ED Reporting/Lowhorn Big Data/Golden Rule Data/w.csv",header=TRUE,stringsAsFactors = FALSE) 
-w <- data.frame(w)
-x <-  fread("//KNX1FS01/ED Reporting/Lowhorn Big Data/Golden Rule Data/x.csv",header=TRUE,stringsAsFactors = FALSE) 
-x <- data.frame(x)
-y <-  fread("//KNX1FS01/ED Reporting/Lowhorn Big Data/Golden Rule Data/y.csv",header=TRUE,stringsAsFactors = FALSE) 
-y <- data.frame(y) 
-z <-  fread("//KNX1FS01/ED Reporting/Lowhorn Big Data/Golden Rule Data/z.csv",header=TRUE,stringsAsFactors = FALSE) 
-z <- data.frame(z) 
 
 
-#########DILLON HIGHTOWER ADD############
-df <- rbind(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z)
-rm(a); rm(b); rm(c); rm(d); rm(e); rm(f); rm(g); rm(h); rm(i); rm(j); rm(k); rm(l); rm(m); rm(n); rm(o); rm(p); rm(q);rm(r);rm(s); rm(t);rm(u);rm(v);rm(w); rm(x); rm(y)
-#########################################
+df <- readRDS('C:/ACTDB/ACT_DB.rds')
 
-#######################################################################################################
+DATEV <- knoxtalx
+DATEV$Date <- as.Date(DATEV$Date, '%m/%d/%Y')
+DATEV <- rename(DATEV,TFILE=ACCOUNT)
 
-DATE <- knoxtalx$Date
-DATE <- as.data.frame(DATE)
 
-DATE$DATE <- as.Date(DATE$DATE,"%m/%d/%Y")
+accountsr <- as.data.frame(as.character(RGR$CM_FILENO))
+names(accountsr) <- 'TFILE'
+accountsr$Date <- as.Date('2015-01-01','%Y-%m-%d')
+accountsp <- as.data.frame(as.character(POE$CM_FILENO))
+names(accountsp) <- 'TFILE'
+accountsp$Date <- as.Date('2015-01-01','%Y-%m-%d')
 
-accounts <- as.character(knoxtalx$ACCOUNT)
+accountz <- rbind(DATEV,accountsp,accountsr)
+rm(accountsp); rm(accountsr); rm(DATEV)
 
 df$TFILE <- as.character(df$TFILE)
 
-df <- df[df$TFILE %in% accounts,]
+df <- left_join(df,accountz,by='TFILE')
+df <- df[!is.na(df$Date),]
 
-data <- df[!duplicated(df$TFILE),]
+df$ACT_DATE <- as.Date(df$ACT_DATE,'%m/%d/%Y')
+#df <- df[df$Date >= df$ACT_DATE,]
+
+#data <- df[!duplicated(df$TFILE),]
 
 contacts <- c("CM","A3P","AT")
 codes <- c("1C","1H","1P","215H","215W","225H","2H","2P","365W","370W","375W","380W","385W","390W","395W","400W","405W")
@@ -120,11 +72,18 @@ home <- c("1C","1H","215H","225H","2H","105H","1P","215A","310H","315H","335A","
           "CBCH","CBPA","CBPH","CBRH","CBRH","CIDH","CLAA","CLAH","CLIH","DNCH","EMPH","EMPA",
           "FRIH","FRNH","FTHH","HMEA","HMEH","HOH","INVH","MANA","MANH","MOTH","MU","MULTH",
           "N2PH","NB","NBYH","NLEH","OTHA","OTHERA","OTHERH","OTHH","PARH","PHNH","PLCH","PORH",
-          "SLFH","SPOH","STDH","TALXH","TLOH","TRKH","TRUH","UNKH","VARH")
+          "SLFH","SPOH","STDH","TALXH","TLOH","TRKH","TRUH","UNKH","VARH",'01H','105H','225H',
+          '310H','360H','364H','370H','375H','380H','385H','390H','395H','400H','405H',
+          '420H','A3CH','0A3PH','ACRH','AEH','AEHH','AEHP','AP3H','ATYH','BUSH','CIDH',
+          'CMRH','COMH','FRIH','FRNH','FTHP','HMEA','HMEH','HMEP','HMEW','HOH','INVH','MOTH',
+          'OTHERH','PLCH','SPOH','STDH','SUPH','TALXH','TLOH','UNKH','WLCDH')
 poe1 <- c("1P","215W","2P")
 poe <- c("1P","215W","2P","365W","370W","375W","380W","385W","390W","395W","400W","405W","335W",
          "TLOW","MANW","POEW","CBPW","SLFW","RELW","ADLW","TRUW","CLAW","PROW","UNKW","310W",
-         "CBRW","NBYW","AKAW","CLIW","PLCW","REFW","ALTW","MULTW","EMPW","TRKW")
+         "CBRW","NBYW","AKAW","CLIW","PLCW","REFW","ALTW","MULTW","EMPW","TRKW",'CBCP','CBPP',
+         'CBRP','EMPA','EMPH','EMPP','EMPW','POE','POEA','POEA','POEH','POEP')
+
+df <- select(df,-Date)
 
 contact_df <- df[df$CODE_2 %in% contacts,]
 contact_df$ACT_DATE <- as.Date(contact_df$ACT_DATE,"%m/%d/%Y")
@@ -135,7 +94,7 @@ contact_data <- contact_df %>%
   summarize(Contacts = n())
 
 ##############################################################
-df <- df[df$CODE_1 %in% codes,]
+#df <- df[df$CODE_1 %in% codes,]
 df$ACT_DATE <- as.Date(df$ACT_DATE,"%m/%d/%Y")
 
 df$T <- gsub("^.*? ","",df$TIME)
@@ -154,9 +113,8 @@ poedf <- df
 poedf$ACT_DATE <- as.Date(poedf$ACT_DATE,"%m/%d/%Y")
 knoxtalx <- rename(knoxtalx,TFILE=ACCOUNT)
 poedf$TFILE <- as.character(poedf$TFILE)
-knoxtalx$TFILE <- as.character(knoxtalx$TFILE)
-poedf <- left_join(poedf,knoxtalx,by="TFILE")
-poedf$Date <- as.Date(poedf$Date,"%m/%d/%Y")
+poedf <- left_join(poedf,accountz,by="TFILE")
+poedf$ACT_DATE <- as.Date(poedf$ACT_DATE,"%m/%d/%Y")
 poedf <- poedf %>%
   mutate(flag = ifelse(ACT_DATE >= Date,1,0))
 poedf <- poedf[poedf$flag >= 1,]
@@ -393,9 +351,7 @@ rm(codes); rm(contacts); rm(home); rm(poe); rm(poe1); rm(r); rm(s)
 
 accounts <- as.numeric(finale$TFILE)
 
-LETTERS_2017 <- read.delim("//knx3it/EDOPSMGMT/Reports/Stamm Reports/Data_Drop/LETTERS_2017.txt",
-                           stringsAsFactors=FALSE)
-
+LETTERS_2017 <- read.delim("//Knx3it/edopsmgmt/Reports/Stamm Reports/Data_Drop/LETTERS_2017.txt", stringsAsFactors=FALSE)
 
 LETTERS_2016 <- read.delim("//knx3it/EDOPSMGMT/Reports/Stamm Reports/Data_Drop/LETTERS_2016.txt",
                            stringsAsFactors=FALSE)
@@ -435,7 +391,8 @@ LETTERS <- mutate(LETTERS,Letters_Sent="Yes")
 LETTERS <- rename(LETTERS,TFILE=Debtor)
 
 LETTERS$TFILE <- as.character(LETTERS$TFILE)
-LETTERS <- select(LETTERS, TFILE, Letters_Sent)
+
+#LETTERS <- select(LETTERS, TFILE, Letters_Sent)
 LETTERS <- LETTERS[!duplicated(LETTERS$TFILE),]
 
 finale <- left_join(finale,LETTERS,by="TFILE")
@@ -499,80 +456,89 @@ Vendor <- Vendor[!duplicated(Vendor[c("File","Vendor","Batch.Date","Office")]),]
 Vendor$CM_LAST_WORK_DATE <- as.Date(Vendor$CM_LAST_WORK_DATE,"%m/%d/%Y")
 Vendor$CM_LAST_WORK_DATE[is.na(Vendor$CM_LAST_WORK_DATE)] <- "2000-01-01"
 
+Vendor$Batch.Date <- as.Date(Vendor$Batch.Date,"%m/%d/%Y")
+
+Vendor$CM_CLI_PLC_DATE <- as.Date(Vendor$CM_CLI_PLC_DATE,'%m/%d/%Y')
+RGR$CM_CLI_PLC_DATE <- as.Date(RGR$CM_CLI_PLC_DATE,'%m/%d/%Y')
+POE$CM_CLI_PLC_DATE <- as.Date(POE$CM_CLI_PLC_DATE,'%m/%d/%Y')
 Vendor <- Vendor %>%
   mutate(Not_Worked_in_72 = ifelse((Sys.Date()-CM_LAST_WORK_DATE) >= 3,"No","Yes"),
-     #    Not_Worked_in_72 = ifelse(is.null(Not_Worked_in_72),"Yes",Not_Worked_in_72),
-        Payer = ifelse(ED_CUR_COND == "COMP" | ED_CUR_COND == "REHAB" | ED_CUR_COND == "REHAB2" | ED_CUR_COND == "REHAB3" | ED_CUR_COND == "PPA",
+         #    Not_Worked_in_72 = ifelse(is.null(Not_Worked_in_72),"Yes",Not_Worked_in_72),
+         Payer = ifelse(ED_CUR_COND == "COMP" | ED_CUR_COND == "REHAB" | ED_CUR_COND == "REHAB2" | ED_CUR_COND == "REHAB3" | ED_CUR_COND == "PPA",
                         "Yes","No"),
-         Payer = ifelse(CM_STATUS == "FRW" | CM_STATUS == "FPW" | CM_STATUS == "FSW","Yes",Payer),
+         Payer = ifelse(CM_STATUS == "FRW" | CM_STATUS == "FPW" | CM_STATUS == "FSW" | CM_STATUS == "AAP" | CM_STATUS == "ATY" | CM_STATUS == "DSP" | CM_STATUS == "BKY","Yes",Payer),
          Reject = ifelse(ED_REJD_DATE >= Sys.Date()-180,"Yes","No"),
          Letters = ifelse((ED_30A_DATE != "" & ED_30B_DATE != "" & ED_30W_DATE != "")|Letters_Sent == "Yes","Yes","No"),
          Good_Desk = ifelse(CM_DESK >= 600 | CM_DESK == 80 | CM_DESK == 1,"No","Yes"),
-         Good_Desk = ifelse(CM_DESK == 613 | CM_DESK == 680 | CM_DESK == 681 | CM_DESK == 682 | CM_DESK == 683 | CM_DESK == 684 | CM_DESK == 991 | CM_DESK == 997,"Yes",Good_Desk),
+         Good_Desk = ifelse(CM_DESK == 613 | CM_DESK == 680 | CM_DESK == 681 | CM_DESK == 682 | CM_DESK == 683 | CM_DESK == 684 | CM_DESK == 685 | CM_DESK == 686 | CM_DESK == 991 | CM_DESK == 997,"Yes",Good_Desk),
          Payment = ifelse((Sys.Date()-45)<=ED_LAST_VOL_PAY_DATE,"Yes","No"),
-         Activations_Req = ifelse((Contacts >=1 & Letters == "Yes" & Good_Desk == "Yes" & Reject == "No" & Payer == "No" & Payment == "No") | (Num_of_Home_Attempts == "Yes" & Time_Of_Day == "Yes" & HA_Multiple_Days_of_Week == "Yes" & (POE_Attempts >=2 | POE_Location_Attempts >= 7) & Letters == "Yes" & Good_Desk == "Yes" & Reject == "No" & Payer == "No" & Payment == "No"),
+         Activations_Req = ifelse((Contacts >=1 & CM_CLI_PLC_DATE < (Sys.Date()-150) &CM_CURR_BAL >= 300 & (ED_30A_DATE != '' | X30A.Date !='') & Good_Desk == "Yes" & Reject == "No" & Payer == "No" & Payment == "No" & (Batch.Date >= Sys.Date()-150)) | (Num_of_Home_Attempts == "Yes" & Time_Of_Day == "Yes" & HA_Multiple_Days_of_Week == "Yes" & (POE_Attempts >=2 | POE_Location_Attempts >= 7) & Letters == "Yes" & Good_Desk == "Yes" & Reject == "No" & Payer == "No" & CM_CURR_BAL >= 300 & CM_CLI_PLC_DATE < (Sys.Date()-60) &Payment == "No"&(Batch.Date >= Sys.Date()-150)),
                                   "Yes","No"),
          Reason = ifelse(Payer =="Yes","Paying Condition",
                          ifelse(Reject == "Yes", "Previously Rejected",
-                         ifelse(Letters == "No", "Needs Letters Sent",
-                         ifelse(Good_Desk == "No", "Unsweepable Desks",
-                         ifelse(Payment == "Yes", "Voluntary Payment in Last 45 Days",
-                         ifelse(Num_of_Home_Attempts == "No", "Needs Home Attempts",
-                         ifelse(Time_Of_Day == "No", "Needs Calls on Different Times of Day",
-                         ifelse(HA_Multiple_Days_of_Week == "No","Needs Calls on Different Days of Week",
-                         ifelse((POE_Attempts <2 & POE_Location_Attempts <7), "Needs POE Location Attempts",
-                         ifelse(POE_Attempts <2, "Needs POE Attempts","Sweepable")))))))))))
-                         
-                  
+                                ifelse(Letters == "No", "Needs Letters Sent",
+                                       ifelse(Good_Desk == "No", "Unsweepable Desks",
+                                              ifelse(Payment == "Yes", "Voluntary Payment in Last 45 Days",
+                                                     ifelse(Num_of_Home_Attempts == "No", "Needs Home Attempts",
+                                                            ifelse(Time_Of_Day == "No", "Needs Calls on Different Times of Day",
+                                                                   ifelse(HA_Multiple_Days_of_Week == "No","Needs Calls on Different Days of Week",
+                                                                          ifelse((POE_Attempts <2 & POE_Location_Attempts <7), "Needs POE Location Attempts",
+                                                                                 ifelse(POE_Attempts <2, "Needs POE Attempts",
+                                                                                        ifelse(Activations_Req == "Yes","Sweepable","See AWG Management"))))))))))))
+
+
+Vendor <- Vendor %>%
+  mutate(Activations_Req = ifelse( (Office == 'CBUS' | Office == 'CBUS2') & Vendor == 'Verifacts' & Batch.Date == ' 2017-09-21','No',Activations_Req ))
+
 
 RGR <- RGR %>%
   mutate(Payer = ifelse(ED_CUR_COND == "COMP" | ED_CUR_COND == "REHAB" | ED_CUR_COND == "REHAB2" | ED_CUR_COND == "REHAB3" | ED_CUR_COND == "PPA",
                         "Yes","No"),
-         Payer = ifelse(CM_STATUS == "FRW" | CM_STATUS == "FPW" | CM_STATUS == "FSW","Yes",Payer),
+         Payer = ifelse(CM_STATUS == "FRW" | CM_STATUS == "FPW" | CM_STATUS == "FSW" | CM_STATUS == "AAP" | CM_STATUS == "ATY","Yes",Payer),
          Reject = ifelse(ED_REJD_DATE >= Sys.Date()-180,"Yes","No"),
          Letters = ifelse((ED_30A_DATE != "" & ED_30B_DATE != "" & ED_30W_DATE != "")|Letters_Sent == "Yes","Yes","No"),
          Good_Desk = ifelse(CM_DESK >= 600 | CM_DESK == 80 | CM_DESK == 1,"No","Yes"),
-         Good_Desk = ifelse(CM_DESK == 613 | CM_DESK == 680 | CM_DESK == 681 | CM_DESK == 682 | CM_DESK == 683 | CM_DESK == 684 | CM_DESK == 991 | CM_DESK == 997,"Yes",Good_Desk),
+         Good_Desk = ifelse(CM_DESK == 613 | CM_DESK == 680 | CM_DESK == 681 | CM_DESK == 682 | CM_DESK == 683 | CM_DESK == 684 | CM_DESK == 685 | CM_DESK == 991 | CM_DESK == 997,"Yes",Good_Desk),
          Payment = ifelse((Sys.Date()-45)<=ED_LAST_VOL_PAY_DATE,"Yes","No"),
          Verified = ifelse(Sys.Date()-150 <= NAME1_VERIFY_POE,"Yes","No" ),
-         Activations_Req = ifelse((Verified == "Yes" & Contacts >=1 & Letters == "Yes" & Good_Desk == "Yes" & Reject == "No" & Payer == "No" & Payment == "No") | (Verified == "Yes" & Num_of_Home_Attempts == "Yes" & Time_Of_Day == "Yes" & HA_Multiple_Days_of_Week == "Yes" & (POE_Attempts >=2 | POE_Location_Attempts >= 7) & Letters == "Yes" & Good_Desk == "Yes" & Reject == "No" & Payer == "No" & Payment == "No"),
+         Activations_Req = ifelse((Verified == "Yes" & CM_CURR_BAL >= 300 & CM_CLI_PLC_DATE < (Sys.Date()-30) &Contacts >=1 & (ED_30A_DATE != '' | X30A.Date !='') & Good_Desk == "Yes" & Reject == "No" & Payer == "No" & Payment == "No") | (Verified == "Yes" & Num_of_Home_Attempts == "Yes" & Time_Of_Day == "Yes" & HA_Multiple_Days_of_Week == "Yes" & (POE_Attempts >=2 | POE_Location_Attempts >= 7) & Letters == "Yes" & Good_Desk == "Yes" & Reject == "No" & CM_CURR_BAL >= 300 & CM_CLI_PLC_DATE < (Sys.Date()-60) &Payer == "No" & Payment == "No"),
                                   "Yes","No"),
          Reason = ifelse(Payer =="Yes","Paying Condition",
                          ifelse(Reject == "Yes", "Previously Rejected",
-                         ifelse(Letters == "No", "Needs Letters Sent",
-                         ifelse(Good_Desk == "No", "Unsweepable Desks",
-                         ifelse(Payment == "Yes", "Voluntary Payment in Last 45 Days",
-                         ifelse(Num_of_Home_Attempts == "No", "Needs Home Attempts",
-                         ifelse(Time_Of_Day == "No", "Needs Calls on Different Times of Day",
-                         ifelse(HA_Multiple_Days_of_Week == "No","Needs Calls on Different Days of Week",
-                         ifelse((POE_Attempts <2 & POE_Location_Attempts <7), "Needs POE Location Attempts",
-                         ifelse(POE_Attempts <2, "Needs POE Attempts",
-                         ifelse(Verified=="No","Needs 2 Screen Verification Date W/I Last 150 Days","Sweepable"))))))))))))
+                                ifelse(Letters == "No", "Needs Letters Sent",
+                                       ifelse(Good_Desk == "No", "Unsweepable Desks",
+                                              ifelse(Payment == "Yes", "Voluntary Payment in Last 45 Days",
+                                                     ifelse(Num_of_Home_Attempts == "No", "Needs Home Attempts",
+                                                            ifelse(Time_Of_Day == "No", "Needs Calls on Different Times of Day",
+                                                                   ifelse(HA_Multiple_Days_of_Week == "No","Needs Calls on Different Days of Week",
+                                                                          ifelse((POE_Attempts <2 & POE_Location_Attempts <7), "Needs POE Location Attempts",
+                                                                                 ifelse(POE_Attempts <2, "Needs POE Attempts",
+                                                                                        ifelse(Verified=="No","Needs 2 Screen Verification Date W/I Last 30 Days","Sweepable"))))))))))))
 
 
 POE <- POE %>%
   mutate(Payer = ifelse(ED_CUR_COND == "COMP" | ED_CUR_COND == "REHAB" | ED_CUR_COND == "REHAB2" | ED_CUR_COND == "REHAB3" | ED_CUR_COND == "PPA",
                         "Yes","No"),
-         Payer = ifelse(CM_STATUS == "FRW" | CM_STATUS == "FPW" | CM_STATUS == "FSW","Yes",Payer),
+         Payer = ifelse(CM_STATUS == "FRW" | CM_STATUS == "FPW" | CM_STATUS == "FSW" | CM_STATUS == "AAP" | CM_STATUS == "ATY","Yes",Payer),
          Reject = ifelse(ED_REJD_DATE >= Sys.Date()-180,"Yes","No"),
          Letters = ifelse((ED_30A_DATE != "" & ED_30B_DATE != "" & ED_30W_DATE != "")|Letters_Sent == "Yes","Yes","No"),
          Good_Desk = ifelse(CM_DESK >= 600 | CM_DESK == 80 | CM_DESK == 1,"No","Yes"),
-         Good_Desk = ifelse(CM_DESK == 613 | CM_DESK == 680 | CM_DESK == 681 | CM_DESK == 682 | CM_DESK == 683 | CM_DESK == 684 | CM_DESK == 991 | CM_DESK == 997,"Yes",Good_Desk),
+         Good_Desk = ifelse(CM_DESK == 613 | CM_DESK == 680 | CM_DESK == 681 | CM_DESK == 682 | CM_DESK == 683 | CM_DESK == 684 | CM_DESK == 685 |CM_DESK == 991 | CM_DESK == 997,"Yes",Good_Desk),
          Payment = ifelse((Sys.Date()-45)<=ED_LAST_VOL_PAY_DATE,"Yes","No"),
          Verified = ifelse(Sys.Date()-150 <= NAME1_VERIFY_POE,"Yes","No" ),
-         Activations_Req = ifelse((Verified == "Yes" & Contacts >=1 & Letters == "Yes" & Good_Desk == "Yes" & Reject == "No" & Payer == "No" & Payment == "No") | (Verified == "Yes" & Num_of_Home_Attempts == "Yes" & Time_Of_Day == "Yes" & HA_Multiple_Days_of_Week == "Yes" & (POE_Attempts >=2 | POE_Location_Attempts >= 7) & Letters == "Yes" & Good_Desk == "Yes" & Reject == "No" & Payer == "No" & Payment == "No"),
+         Activations_Req = ifelse((Verified == "Yes" & Contacts >=1 & (ED_30A_DATE != '' | X30A.Date !='') & CM_CLI_PLC_DATE < (Sys.Date()-30) &Good_Desk == "Yes" & Reject == "No" & Payer == "No" & Payment == "No") | (Verified == "Yes" & Num_of_Home_Attempts == "Yes" & Time_Of_Day == "Yes" & HA_Multiple_Days_of_Week == "Yes" & (POE_Attempts >=2 | POE_Location_Attempts >= 7) & Letters == "Yes" & Good_Desk == "Yes" & Reject == "No" & Payer == "No" & CM_CLI_PLC_DATE < (Sys.Date()-60) &Payment == "No"),
                                   "Yes","No"),
          Reason = ifelse(Payer =="Yes","Paying Condition",
                          ifelse(Reject == "Yes", "Previously Rejected",
-                         ifelse(Letters == "No", "Needs Letters Sent",
-                         ifelse(Good_Desk == "No", "Unsweepable Desks",
-                         ifelse(Payment == "Yes", "Voluntary Payment in Last 45 Days",
-                         ifelse(Num_of_Home_Attempts == "No", "Needs Home Attempts",
-                         ifelse(Time_Of_Day == "No", "Needs Calls on Different Times of Day",
-                         ifelse(HA_Multiple_Days_of_Week == "No","Needs Calls on Different Days of Week",
-                         ifelse((POE_Attempts <2 & POE_Location_Attempts <7), "Needs POE Location Attempts",
-                         ifelse(POE_Attempts <2, "Needs POE Attempts",
-                         ifelse(Verified=="No","Needs 2 Screen Verification Date W/I Last 150 Days","Sweepable"))))))))))))
+                                ifelse(Letters == "No", "Needs Letters Sent",
+                                       ifelse(Good_Desk == "No", "Unsweepable Desks",
+                                              ifelse(Payment == "Yes", "Voluntary Payment in Last 45 Days",
+                                                     ifelse(Num_of_Home_Attempts == "No", "Needs Home Attempts",
+                                                            ifelse(Time_Of_Day == "No", "Needs Calls on Different Times of Day",
+                                                                   ifelse(HA_Multiple_Days_of_Week == "No","Needs Calls on Different Days of Week",
+                                                                          ifelse((POE_Attempts <2 & POE_Location_Attempts <7), "Needs POE Location Attempts",
+                                                                                 ifelse(POE_Attempts <2, "Needs POE Attempts",
+                                                                                        ifelse(Verified=="No","Needs 2 Screen Verification Date W/I Last 30 Days","Sweepable"))))))))))))
 
 
 ARMASTER <- read.csv("//KNX1FS01/ED Reporting/Lowhorn Big Data/Golden Rule Data/ARMASTER.csv", stringsAsFactors=FALSE)
@@ -652,7 +618,7 @@ RGRPivot <- RGRPivot %>%
 
 Vendor$ED_ACCT_ACT_DATE <- as.Date(Vendor$ED_ACCT_ACT_DATE,"%m/%d/%Y")
 Vendor$ED_ACCT_ACT_DATE[is.na(Vendor$ED_ACCT_ACT_DATE)] <- "2010-01-01"
-Vendor$Batch.Date <- as.Date(Vendor$Batch.Date,"%m/%d/%Y")
+#Vendor$Batch.Date <- as.Date(Vendor$Batch.Date,"%m/%d/%Y")
 Vendor$Batch.Date[is.na(Vendor$Batch.Date)] <- "2010-01-01"
 Vendor$ED_LAST_GARN_PMT_DT <- as.Date(Vendor$ED_LAST_GARN_PMT_DT,"%m/%d/%Y")
 Vendor$ED_LAST_GARN_PMT_DT[is.na(Vendor$ED_LAST_GARN_PMT_DT)] <- "2010-01-01"
@@ -672,7 +638,7 @@ Summary <- Vendor %>%
             Activated_With_Order = Orders_Sent/Files_Activated,
             GAR_Pay_Last_30 = sum((Sys.Date()-30)<=ED_LAST_GARN_PMT_DT),
             GAR_Pay_Last_90 = sum((Sys.Date()-90)<=ED_LAST_GARN_PMT_DT)
-            )%>%
+  )%>%
   ungroup() %>% 
   arrange((Batch.Date))
 
@@ -686,6 +652,14 @@ Summary <- plyr::rename(Summary,c("Batch.Date"="Batch Date","Files_Received"="Fi
 POE$Manager.Name[is.na(POE$Manager.Name)] <- "Hold Desk"
 POE$Supervisor.Name[is.na(POE$Supervisor.Name)] <- "Hold Desk"
 POE$Name[is.na(POE$Name)] <- "Hold Desk"
+
+POE <- POE[!duplicated(POE$CM_FILENO),]
+POE <- POE[POE$CM_CLIENT != "",]
+POE <- POE[POE$CM_STATUS != "",]
+POE <- POE[POE$CM_CURR_BAL != "",]
+POE <- POE[POE$CM_DESK != "",]
+POE <- POE[POE$CM_FILENO != "",]
+POE <- POE[POE$NAME1_EMP_NAME != "",]
 
 
 VendorA <- Vendor %>% select(CM_FILENO,Reason) %>% mutate(Type = "Vendor")
@@ -704,9 +678,10 @@ Summary$Office <- as.factor(Summary$Office)
 Summary$Vendor <- as.factor(Summary$Vendor)
 Summary$"Batch Date" <- as.factor(Summary$"Batch Date")
 
+write.csv(Summary,"//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/Summary.csv",row.names=F)
+
 POEPivot <- POE %>% filter(CM_DESK <= 599 | CM_DESK>=900) %>%
   select(CM_FILENO,CM_DESK,CM_CLIENT,CM_STATUS,ED_CUR_COND,Activations_Req,Reason,Name,Supervisor.Name,Manager.Name,Activations_Req)
-
 
 Vendor$Batch.Date <- as.character(Vendor$Batch.Date)
 ARMAST <- select(ARMASTER,CM_DESK,Name,Supervisor.Name,Manager.Name)
@@ -714,14 +689,15 @@ ARMAST$Name <- as.factor(ARMAST$Name)
 ARMAST$Supervisor.Name <- as.factor(ARMAST$Supervisor.Name)
 ARMAST$Manager.Name <- as.factor(ARMAST$Manager.Name)
 ARMAST <- rename(ARMAST,Credit_AR=CM_DESK)
-
+#####
 
 rgrsweep <- RGR[RGR$Activations_Req == "Yes",]
 rgrs <- RGR$CM_FILENO
 
+doublecheck <- RGR %>% select(CM_FILENO,ED_AWG_CREDIT_AR)
+
 vendorsweep <- Vendor[Vendor$Activations_Req == "Yes",]
 vendorz <- vendorsweep$CM_FILENO
-
 
 responses <- read.csv("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/ManualRGRs.csv", stringsAsFactors=FALSE)
 responseout <- responses[responses$Checked == "Yes",]
@@ -729,6 +705,10 @@ responseout$Date <- as.Date(responseout$Date,"%m/%d/%Y")
 responseout$Date <- format(responseout$Date,"%m/1/%Y")
 currmonth <- format(Sys.Date(),"%m/1/%Y")
 responseout <- responseout[responseout$Date %in% currmonth,]
+
+P <- POE %>% select(CM_FILENO,CM_DESK)
+responseout$File <- as.character(responseout$File)
+#responseout <- left_join(responseout,P,by='File')
 
 
 rgrsweep <- rgrsweep %>%
@@ -758,7 +738,15 @@ rgrsweep$ED_AWG_CREDIT_AR <- as.character(rgrsweep$ED_AWG_CREDIT_AR)
 rgrsweep <- rgrsweep %>%
   mutate(ED_AWG_CREDIT_AR = ifelse(is.na(ED_AWG_CREDIT_AR),"",ED_AWG_CREDIT_AR))
 
+doublecheck <- rename(doublecheck,CRAR = ED_AWG_CREDIT_AR)
 
+rgrsweep <- left_join(rgrsweep,doublecheck,by='CM_FILENO')
+
+rgrsweep <- rgrsweep %>%
+  mutate(ED_AWG_CREDIT_AR = ifelse(ED_AWG_CREDIT_AR == '',CRAR,ED_AWG_CREDIT_AR))
+
+rgrsweep$ED_AWG_CREDIT_AR[is.na(rgrsweep$ED_AWG_CREDIT_AR)] <- ''
+rgrsweep <- rgrsweep[,!names(rgrsweep) %in% 'CRAR']
 
 RGR.Database <- read.csv("//KNX3IT/AWG Management/RGR/RGR Database.csv", stringsAsFactors=FALSE)
 
@@ -774,6 +762,10 @@ files <- as.character(files$Debtor)
 rgrsweep$CM_FILENO <- as.character(rgrsweep$CM_FILENO)
 
 rgrsweep <- rgrsweep[!duplicated(rgrsweep$CM_FILENO),]
+
+
+lo <- left_join(rgrsweep,P,by='CM_FILENO')
+lo <- lo[!is.na(lo$CM_DESK),]
 
 rgrsweep<- rgrsweep[!rgrsweep$CM_FILENO %in% files,]
 
@@ -817,8 +809,24 @@ write.csv(responses,"//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data
 
 RGR <- RGR[!duplicated(RGR$CM_FILENO),]
 
-setwd("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Application File")
-runApp(host="0.0.0.0",port=5070)
+POE <- POE[POE$CM_CLIENT != "",]
+POE <- POE[POE$CM_STATUS != "",]
+POE <- POE[POE$CM_CURR_BAL != "",]
+POE <- POE[POE$CM_DESK != "",]
+POE <- POE[POE$CM_FILENO != "",]
+POE <- POE[POE$NAME1_EMP_NAME != "",]
 
 
+write.csv(ARMAST,"//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/INPUT/ARMAST.csv",row.names=F)
+write.csv(POE,"//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/INPUT/POE_.csv",row.names=F)
+write.csv(POEPivot,"//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/INPUT/POEPivot.csv",row.names=F)
+write.csv(RGR,"//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/INPUT/RGR_.csv",row.names=F)
+write.csv(RGRPivot,"//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/INPUT/RGRPivot.csv",row.names=F)
+write.csv(SearchD,"//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/INPUT/SearchD.csv",row.names=F)
+write.csv(Vendor,"//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/INPUT/Vendor_.csv",row.names=F)
+write.csv(VendorPivot,"//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/INPUT/VendorPivot.csv",row.names=F)
+write.csv(rgrsweep,"//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/INPUT/rgrsweep.csv",row.names=F)
+write.csv(vendorsweep,"//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/INPUT/vendorsweep.csv",row.names=F)
+
+write.csv(lo,"//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/LowManualSweep.csv",row.names=F)
 
