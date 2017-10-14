@@ -10,11 +10,13 @@ library(rhandsontable)
 library(plotly)
 library(rjson)
 
-currmonth = format(Sys.Date()-1,"%B %Y")
+Vendor_ <- read.csv("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/INPUT/Vendor_.csv")
 
+currmonth = format(Sys.Date()-1,"%B %Y")
+RGR.Database <- read.csv("//KNX3IT/AWG Management/RGR/RGR Database.csv", stringsAsFactors=FALSE)
 NSABAN <- read.csv("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/AWG_AR.csv", stringsAsFactors=TRUE)
 VPUTIN <- read.csv("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/AWG_CLIENT.csv", stringsAsFactors=TRUE)
-NINE <- read.csv("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/Jew.csv", stringsAsFactors=TRUE)
+NINE <- read.csv("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/Theta.csv", stringsAsFactors=TRUE)
 
 
 # save the results to a file
@@ -40,17 +42,15 @@ responses$Date <- format(responses$Date,"%m/%d/%Y")
 responses <- responses[!duplicated(responses[c("File","Credit_AR","Date")]),]
 responseout <- responses[responses$Checked == "Yes",]
 responses <- responses[responses$Checked == "No",]
-
-
-
-
-
 responsesDir <- file.path("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data")
 
 Logged = FALSE;
-PASSWORD <- data.frame(Brukernavn = c("KCRUZE","GHURD","JRODERMUND","JBELL","AHEINRICH","MROSE","JLOWHORN","THAMPTON"),
-                       Passord = c("CRUZIN","GHURD2017","JRODERMUND2017","JBELL2017","AHEINRICH2017","MROSE2017","Rjys-548","bNg0neM0th63"))
+PASSWORD <- data.frame(Brukernavn = c("KCRUZE","GHURD","JRODERMUND","JBELL","AHEINRICH","MROSE","JLOWHORN","THAMPTON","BGARRETT",'TBOLTON','AMENDES','MSCOTT'),
+                       Passord = c("CRUZIN","GHURD2017","JRODERMUND2017","JBELL2017","AHEINRICH2017","MROSE2017","Rjys-548","DnGLJAmBAWG108","BGARRETT2017",'NEWDAY17','ASROMA10','MSCOTT2017'))
 
+
+files <- RGR.Database[RGR.Database$Month %in% currmonth,]
+files <- as.character(files$Debtor)
 
 sidebar <- dashboardSidebar(
   sidebarMenu(
@@ -71,14 +71,19 @@ sidebar <- dashboardSidebar(
     menuItem("Non RGR/Vendor POE Needs",tabName="POE",
              menuSubItem("POE Pivot",tabName="poepivot"),
              menuSubItem("POE Download",tabName="massdown")),
+    menuItem("POE Vendor Search",tabName="joesearch"),
+    menuItem("POE Mass Vendor Search",tabName="dirtbag"),
     menuItem("Not Swept Reason Search Tool",tabName='search'),
     menuItem("Mass Not Swept Reason Search",tabName="mass"),
     menuItem("Activations Report",tabName="ACTRPT",icon=icon("credit-card"),
              menuSubItem("AWG AR Breakdown",tabName="ARBRK"),
+        #     menuSubItem("WG19 Worklist",tabName="WGWORK"),
+             menuSubItem("MGR Statistics", tabName="MGRStats"),
              menuSubItem("Office Breakdown",tabName="OFFBRK"),
              menuSubItem("Activations to Rehab Report",tabName="ACTTORHB"),
              menuSubItem("Total Activations Chart",tabName="d3plot")
-             )
+             ),
+    menuItem('AWG KPI',tabName='KPI')
     
   )
 )
@@ -113,7 +118,7 @@ body <- dashboardBody(
                 ),
     tabItem(tabName="vendordownload",
             fluidRow(
-              column(width=4,selectInput("vendoff","Select Office(s)",choices=levels(as.factor(Vendor$Office)))),
+              column(width=4,selectInput("vendoff","Select Office(s)",choices=levels(as.factor(Vendor_$Office)))),
               column(width=4,selectInput("vendvend","Select Vendor(s)",choices="",selected="",multiple=T)),
               column(width=4,selectInput("venddate","Select Batch Date(s)",choices="",selected="",multiple=T))
               
@@ -207,7 +212,7 @@ body <- dashboardBody(
             column(width=4),column(width=4,downloadButton('allpoedown', 'Download All POE Accounts'))),
     
     tabItem(tabName="search",
-            fluidRow(numericInput("files","Enter File Number to Search:",value=Vendor$File[1],min =1,max=9999999)),
+            fluidRow(numericInput("files","Enter File Number to Search:",value=Vendor_$File[1],min =1,max=9999999)),
             fluidRow(
               textOutput("reason")),
             fluidRow(textOutput("type"))),
@@ -277,9 +282,11 @@ body <- dashboardBody(
     
     tabItem(tabName="ARBRK",
             fluidRow(
-              column(width=4),
+              column(width=4,h2(textOutput("TimeZ"))),
               column(width=4,
-                     selectInput("armonth","Select Month",choices=levels(NSABAN$Month),selected=currmonth)
+                     selectInput("armonth","Select Month",choices=c("October 2016","November 2016","December 2016","January 2017","February 2017",
+                                                                    "March 2017","April 2017","May 2017","June 2017","July 2017", 'August 2017',
+                                                                    'September 2017','October 2017', "No WG19 Sent"),selected=format(Sys.Date()-1,"%B %Y"))
                      )
               ),
             fluidRow(
@@ -292,7 +299,9 @@ body <- dashboardBody(
     fluidRow(
       column(width=4),
       column(width=4,
-             selectInput("ofmonth","Select Month",choices=levels(VPUTIN$Month),selected=currmonth)
+             selectInput("ofmonth","Select Month",c("October 2016","November 2016","December 2016","January 2017","February 2017",
+                                                    "March 2017","April 2017","May 2017","June 2017","July 2017",'August 2017',
+                                                    'September 2017','October 2017'),selected=format(Sys.Date()-1,"%B %Y"))
       )
     ),
     fluidRow(
@@ -307,9 +316,32 @@ body <- dashboardBody(
             includeHTML("index.html")
            ),
            fluidRow(h2("Learn D3.js at:",
-                        tags$a(href="https://github.com/d3/d3/wiki/Gallery","d3js.org")))
+                        tags$a(href="https://d3js.org/","d3js.org")))
     
-            )
+            ),
+    tabItem(tabName="MGRStats",
+            fluidRow(column(width=4),
+                     column(width=4,
+                            selectInput(inputId="MGRStatsMth",label="Select Month",choices=c("October 2016","November 2016","December 2016","January 2017","February 2017",
+                                                                                             "March 2017","April 2017","May 2017","June 2017","July 2017",'August 2017',
+                                                                                             'September 2017','October 2017'),selected=format(Sys.Date()-1,"%B %Y"))
+                            )),
+            fluidRow(dataTableOutput("jimmybuffet"))
+            
+
+            ),
+    tabItem(tabName="joesearch",
+            fluidRow(numericInput("filez","Enter File Number to Search:",value=Vendor_$File[1],min =1,max=9999999)),
+                DT::dataTableOutput("joetable")
+            
+            
+    ),
+    
+    tabItem(tabName="WGWORK",
+            DT::dataTableOutput("wg19worklist")),
+    tabItem(tabName="KPI",
+            DT::dataTableOutput("lowkpi"))
+
     ))
 
 
@@ -328,6 +360,45 @@ ui <- dashboardPage(
 server <- function(input, output,session) {
   
   
+  kpi <- reactive({
+    gentry <- read.csv("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/gentry.csv",
+                       stringsAsFactors=FALSE)
+    gentry <- gentry %>% mutate(Resolution = Percent_W_GAR + Percent_Paying)
+    gentry <- plyr::rename(gentry,c('Days_For_GAR'='Days for GAR',
+                                    'Accounts_W_GAR'='Accounts With GAR',
+                                    'Percent_W_GAR'='Percent With GAR',
+                                    'Percent_Paying'='Percent Paying',
+                                    'Resolution'='Total Resolution Rate'))
+    
+    gentry
+        
+  })
+  
+  output$lowkpi <- DT::renderDataTable({
+    table <- datatable(kpi(),extensions = c('FixedColumns','Buttons','ColReorder','KeyTable','RowReorder','Scroller'), rownames=FALSE,class = 'cell-border stripe',filter="top",
+                       options = list(
+                         searching=TRUE,
+                         autoWidth=TRUE,
+                         keys=TRUE,
+                         scroller=T,
+                         scrollY=450,
+                         rowReorder=T,
+                         colReorder = TRUE,
+                         paging=T,
+                         dom = 'Bfrtip',
+                         scrollX=T,
+                         buttons = c('copy', 'csv', 'excel', 'pdf', 'print',I('colvis'))
+                       ))
+    
+    table <- formatPercentage(table,"Total Resolution Rate",digits=2)
+    table <- formatPercentage(table,"Percent Paying",digits=2)
+    table <- formatPercentage(table,"Percent With GAR",digits=2)
+    
+    
+    
+    table
+  }) 
+  
   
   
   responses <- read.csv("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/ManualRGRs.csv", stringsAsFactors=FALSE)
@@ -342,8 +413,8 @@ server <- function(input, output,session) {
   
   observeEvent(input$vendoff,
                updateSelectInput(session,"vendvend","Select Vendor(s)",
-                                 choices=as.character(Vendor$Vendor[Vendor$Office==input$vendoff]),
-                                 selected=as.character(Vendor$Vendor[Vendor$Office==input$vendoff])
+                                 choices=as.character(Vendor_$Vendor[Vendor_$Office==input$vendoff]),
+                                 selected=as.character(Vendor_$Vendor[Vendor_$Office==input$vendoff])
                ))
   
   string1 <- reactive({
@@ -353,8 +424,8 @@ server <- function(input, output,session) {
   
   observeEvent(input$vendvend,
                updateSelectInput(session,"venddate","Select Batch Date(s)",
-                                 choices=as.character(Vendor$Batch.Date[Vendor$Office==input$vendoff & Vendor$Vendor%in%string1()]),
-                                 selected=as.character(Vendor$Batch.Date[Vendor$Office==input$vendoff & Vendor$Vendor%in%string1()])
+                                 choices=as.character(Vendor_$Batch.Date[Vendor_$Office==input$vendoff & Vendor_$Vendor%in%string1()]),
+                                 selected=as.character(Vendor_$Batch.Date[Vendor_$Office==input$vendoff & Vendor_$Vendor%in%string1()])
                ))
   string2 <- reactive({
     a <- c(as.character(input$venddate[1]),as.character(input$venddate[2]),as.character(input$venddate[3]),as.character(input$venddate[4]),as.character(input$venddate[5]),
@@ -370,7 +441,7 @@ server <- function(input, output,session) {
   
   
   vendorDWNDATA <- reactive({
-    a<- Vendor[Vendor$Office==input$vendoff & Vendor$Vendor%in%string1() & Vendor$Batch.Date %in% string2(),]
+    a<- Vendor_[Vendor_$Office==input$vendoff & Vendor_$Vendor%in%string1() & Vendor_$Batch.Date %in% string2(),]
     a
   })
   
@@ -385,6 +456,8 @@ server <- function(input, output,session) {
   
   
   searchs <- reactive({
+    SearchD <- read.csv("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/INPUT/SearchD.csv", stringsAsFactors=FALSE)
+    
     a <- SearchD[SearchD$CM_FILENO %in% input$files,]
     a
     
@@ -397,22 +470,42 @@ server <- function(input, output,session) {
     paste0("This is a"," ",searchs()$Type," ","file.")
   })
   
+  lowvendpiv <- reactive({
+    VendorPivot <- read.csv("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/INPUT/VendorPivot.csv", stringsAsFactors=FALSE)
+    VendorPivot
+    
+  })
+  
+  
   output$pivot1 <- renderRpivotTable({
-    rpivotTable(data = VendorPivot,
+    rpivotTable(data = lowvendpiv(),
                 rows=c("Office","Manager.Name","Supervisor.Name"),
                 cols="Reason",
                 width="50%")
   })
   
+  lohornrgrpivot <- reactive({
+    RGRPivot <- read.csv("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/INPUT/RGRPivot.csv", stringsAsFactors=FALSE)
+    RGRPivot
+    
+  })
+  
   output$pivot2 <- renderRpivotTable({
-    rpivotTable(data = RGRPivot,
+    rpivotTable(data = lohornrgrpivot(),
                 rows=c("off","Manager.Name","Supervisor.Name"),
                 cols="Reason",
                 width="50%")
   })
   
+  lowpoepivot <- reactive({
+    POEPivot <- read.csv("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/INPUT/POEPivot.csv", stringsAsFactors=FALSE)
+    POEPivot
+    })
+  
+  
   output$pivot3 <- renderRpivotTable({
-    rpivotTable(data = POEPivot,
+    
+    rpivotTable(data = lowpoepivot(),
                 rows=c("CM_CLIENT","Manager.Name","Supervisor.Name"),
                 cols="Reason",
                 width="50%")
@@ -436,21 +529,20 @@ server <- function(input, output,session) {
   })
 
   output$vendorsummary <- DT::renderDataTable({
-    table <- datatable(summs(),extensions = 'TableTools', rownames=FALSE,class = 'cell-border stripe',filter="top",
+    table <- datatable(summs(),extensions = c('FixedColumns','Buttons','ColReorder','KeyTable','RowReorder','Scroller'), rownames=FALSE,class = 'cell-border stripe',filter="top",
                        options = list(
                          searching=TRUE,
                          autoWidth=TRUE,
-                         paging=FALSE,
-                         
-                         "sDom" = 'T<"clear">lfrtip',
-                         "oTableTools" = list(
-                           "sSwfPath" = "//cdnjs.cloudflare.com/ajax/libs/datatables-tabletools/2.1.5/swf/copy_csv_xls.swf",
-                           "aButtons" = list(
-                             "copy",
-                             "print",
-                             list("sExtends" = "collection",
-                                  "sButtonText" = "Save",
-                                  "aButtons" = c("csv","xls"))))))
+                         keys=TRUE,
+                         scroller=T,
+                         scrollY=450,
+                         rowReorder=T,
+                         colReorder = TRUE,
+                         paging=T,
+                         dom = 'Bfrtip',
+                         scrollX=T,
+                         buttons = c('copy', 'csv', 'excel', 'pdf', 'print',I('colvis'))
+                       ))
     
     table <- formatPercentage(table,"Percent Activated",digits=2)
     table <- formatPercentage(table,"Percent Paying",digits=2)
@@ -460,6 +552,7 @@ server <- function(input, output,session) {
   })
   
   upload <- reactive({
+    SearchD <- read.csv("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/INPUT/SearchD.csv", stringsAsFactors=FALSE)
     
     # input$file1 will be NULL initially. After the user selects
     # and uploads a file, it will be a data frame with 'name',
@@ -484,21 +577,20 @@ server <- function(input, output,session) {
   })
   
   output$test <- DT::renderDataTable({
-    table <- datatable(upload(),extensions = 'TableTools', rownames=FALSE,class = 'cell-border stripe',filter="top",
+    table <- datatable(upload(),extensions = c('FixedColumns','Buttons','ColReorder','KeyTable','RowReorder','Scroller'), rownames=FALSE,class = 'cell-border stripe',filter="top",
                        options = list(
                          searching=TRUE,
                          autoWidth=TRUE,
+                         keys=TRUE,
+                         scroller=T,
+                         scrollY=450,
+                         rowReorder=T,
+                         colReorder = TRUE,
                          paging=T,
-                         
-                         "sDom" = 'T<"clear">lfrtip',
-                         "oTableTools" = list(
-                           "sSwfPath" = "//cdnjs.cloudflare.com/ajax/libs/datatables-tabletools/2.1.5/swf/copy_csv_xls.swf",
-                           "aButtons" = list(
-                             "copy",
-                             "print",
-                             list("sExtends" = "collection",
-                                  "sButtonText" = "Save",
-                                  "aButtons" = c("csv","xls"))))))
+                         dom = 'Bfrtip',
+                         scrollX=T,
+                         buttons = c('copy', 'csv', 'excel', 'pdf', 'print',I('colvis'))
+                       ))
     
     table
   })
@@ -591,22 +683,20 @@ server <- function(input, output,session) {
   
   
   output$form <- DT::renderDataTable({
-    table <- datatable(upload2(),extensions = 'TableTools', rownames=FALSE,class = 'cell-border stripe',filter="top",
+    table <- datatable(upload2(),extensions = c('FixedColumns','Buttons','ColReorder','KeyTable','RowReorder','Scroller'), rownames=FALSE,class = 'cell-border stripe',filter="top",
                        options = list(
                          searching=TRUE,
                          autoWidth=TRUE,
+                         keys=TRUE,
+                         scroller=T,
+                         scrollY=450,
+                         rowReorder=T,
+                         colReorder = TRUE,
                          paging=T,
-                         
-                         "sDom" = 'T<"clear">lfrtip',
-                         "oTableTools" = list(
-                           "sSwfPath" = "//cdnjs.cloudflare.com/ajax/libs/datatables-tabletools/2.1.5/swf/copy_csv_xls.swf",
-                           "aButtons" = list(
-                             "copy",
-                             "print",
-                             list("sExtends" = "collection",
-                                  "sButtonText" = "Save",
-                                  "aButtons" = c("csv","xls"))))))
-    
+                         dom = 'Bfrtip',
+                         scrollX=T,
+                         buttons = c('copy', 'csv', 'excel', 'pdf', 'print',I('colvis'))
+                       ))
     table
   })
   
@@ -700,6 +790,8 @@ server <- function(input, output,session) {
   
   
   resouttable <- reactive({
+    ARMAST <- read.csv("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/INPUT/ARMAST.csv")
+    ARMAST$Credit_AR <- as.character(ARMAST$Credit_AR)
     a <- responseout
     a$Credit_AR <- as.character(a$Credit_AR)
     a$Response <- as.factor(a$Response)
@@ -713,21 +805,20 @@ server <- function(input, output,session) {
   
   
   output$resout <- DT::renderDataTable({
-    table <- datatable(resouttable(),extensions = 'TableTools', rownames=FALSE,class = 'cell-border stripe',filter="top",
+    table <- datatable(resouttable(),extensions = c('FixedColumns','Buttons','ColReorder','KeyTable','RowReorder','Scroller'), rownames=FALSE,class = 'cell-border stripe',filter="top",
                        options = list(
                          searching=TRUE,
                          autoWidth=TRUE,
+                         keys=TRUE,
+                         scroller=T,
+                         scrollY=450,
+                         rowReorder=T,
+                         colReorder = TRUE,
                          paging=T,
-                         
-                         "sDom" = 'T<"clear">lfrtip',
-                         "oTableTools" = list(
-                           "sSwfPath" = "//cdnjs.cloudflare.com/ajax/libs/datatables-tabletools/2.1.5/swf/copy_csv_xls.swf",
-                           "aButtons" = list(
-                             "copy",
-                             "print",
-                             list("sExtends" = "collection",
-                                  "sButtonText" = "Save",
-                                  "aButtons" = c("csv","xls"))))))
+                         dom = 'Bfrtip',
+                         scrollX=T,
+                         buttons = c('copy', 'csv', 'excel', 'pdf', 'print',I('colvis'))
+                       ))
     
     table
   })
@@ -761,22 +852,27 @@ server <- function(input, output,session) {
         downloadButton("vendsweepdwn","Download Sweeps")
       })
       
+  lowvendsweep <- reactive({
+    vendorsweep <- read.csv("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/INPUT/vendorsweep.csv", stringsAsFactors=FALSE)
+    vendorsweep
+    
+  })
+      
       output$VENDORSWEEP <- DT::renderDataTable({
-        table <- datatable(vendorsweep,extensions = 'TableTools', rownames=FALSE,class = 'cell-border stripe',filter="top",
+        table <- datatable(lowvendsweep(),extensions = c('FixedColumns','Buttons','ColReorder','KeyTable','RowReorder','Scroller'), rownames=FALSE,class = 'cell-border stripe',filter="top",
                            options = list(
                              searching=TRUE,
                              autoWidth=TRUE,
+                             keys=TRUE,
+                             scroller=T,
+                             scrollY=450,
+                             rowReorder=T,
+                             colReorder = TRUE,
                              paging=T,
-                             
-                             "sDom" = 'T<"clear">lfrtip',
-                             "oTableTools" = list(
-                               "sSwfPath" = "//cdnjs.cloudflare.com/ajax/libs/datatables-tabletools/2.1.5/swf/copy_csv_xls.swf",
-                               "aButtons" = list(
-                                 "copy",
-                                 "print",
-                                 list("sExtends" = "collection",
-                                      "sButtonText" = "Save",
-                                      "aButtons" = c("csv","xls"))))))
+                             dom = 'Bfrtip',
+                             scrollX=T,
+                             buttons = c('copy', 'csv', 'excel', 'pdf', 'print',I('colvis'))
+                           ))
         
         table
       })
@@ -786,13 +882,19 @@ server <- function(input, output,session) {
     }
   })
   
+  lowvendsweep2 <- reactive({
+    vendorsweep <- read.csv("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/INPUT/vendorsweep.csv", stringsAsFactors=FALSE)
+    vendorsweep
+    
+  })
+  
   
   output$vendsweepdwn <- downloadHandler(
     filename = function() { 
       paste("VendorSweeps", '.csv', sep='') 
     },
     content = function(file) {
-      write.csv(vendorsweep, file)
+      write.csv(lowvendsweep2(), file)
     }
   )
   
@@ -804,6 +906,16 @@ server <- function(input, output,session) {
   
   
   source("www/Login3.R",  local = TRUE)
+  
+lowrgrsweep <- reactive({
+  
+  rgrsweep <- read.csv("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/INPUT/rgrsweep.csv", stringsAsFactors=FALSE)
+  rgrsweep <- rename(rgrsweep,Debtor=CM_FILENO,CRAR=ED_AWG_CREDIT_AR,Vendor.File.=Vendor)
+  rgrsweep <- select(rgrsweep,Month,Debtor, CRAR,Vendor.File.)
+  
+  
+  rgrsweep
+})
   
   observe({
     if (USER3$Logged == TRUE) {
@@ -818,33 +930,39 @@ server <- function(input, output,session) {
         downloadButton("rgrsweepdwn","Download Sweeps")
       })
       
+      
+      
       output$RGRSWEEP <- DT::renderDataTable({
-        table <- datatable(rgrsweep,extensions = 'TableTools', rownames=FALSE,class = 'cell-border stripe',filter="top",
+        table <- datatable(lowrgrsweep(),extensions = c('FixedColumns','Buttons','ColReorder','KeyTable','RowReorder','Scroller'), rownames=FALSE,class = 'cell-border stripe',filter="top",
                            options = list(
                              searching=TRUE,
                              autoWidth=TRUE,
+                             keys=TRUE,
+                             scroller=T,
+                             scrollY=450,
+                             rowReorder=T,
+                             colReorder = TRUE,
                              paging=T,
-                             
-                             "sDom" = 'T<"clear">lfrtip',
-                             "oTableTools" = list(
-                               "sSwfPath" = "//cdnjs.cloudflare.com/ajax/libs/datatables-tabletools/2.1.5/swf/copy_csv_xls.swf",
-                               "aButtons" = list(
-                                 "copy",
-                                 "print",
-                                 list("sExtends" = "collection",
-                                      "sButtonText" = "Save",
-                                      "aButtons" = c("csv","xls"))))))
+                             dom = 'Bfrtip',
+                             scrollX=T,
+                             buttons = c('copy', 'csv', 'excel', 'pdf', 'print',I('colvis'))
+                           ))
         
         table
       })
       
       observeEvent(input$rgrSweep,{
+      
+        RGR.Database <- read.csv("//KNX3IT/AWG Management/RGR/RGR Database.csv", stringsAsFactors=FALSE)     
+        RGRs <- rbind(RGR.Database,lowrgrsweep())
+                
+        RGRs <- RGRs[!duplicated(RGRs[c("Month","Debtor","CRAR")]) ,]
         
         shinyjs::hide("rgrSweep")
         shinyjs::hide("RGRSWEEP")
         shinyjs::hide("rgrsweepdwn")
         shinyjs::show("save_msg3")
-        write.csv(RGR.Database,"//KNX3IT/AWG Management/RGR/RGR Database.csv",row.names=FALSE)
+        write.csv(RGRs,"//KNX3IT/AWG Management/RGR/RGR Database.csv",row.names=FALSE)
         
       })
       
@@ -860,7 +978,7 @@ server <- function(input, output,session) {
       paste("RGRSweeps", '.csv', sep='') 
     },
     content = function(file) {
-      write.csv(rgrsweep, file)
+      write.csv(lowrgrsweep(), file)
     }
   )
   
@@ -877,15 +995,12 @@ server <- function(input, output,session) {
   saban <- reactive({
     NSABAN <- read.csv("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/AWG_AR.csv", stringsAsFactors=TRUE)
     
-    NSABAN <-  select(NSABAN,A.R, manager,Month, MonthlyActivations,TotalActivations,WG19_Sent,
-                                OW1_Sent,OW2_Sent,TotalGAR,TotalVol,TotalCollected,Resolutions,
+    NSABAN <-  select(NSABAN,A.R, manager,Month, InitiatedActivations,MonthlyActivations,Efficiency,
+                               TotalGAR,TotalVol,TotalCollected,Resolutions,
                                 SuccessRate)
     
-    NSABAN <- plyr::rename(NSABAN,c("MonthlyActivations"="Activations",
-                                    "TotalActivations"="Activations Since Start",
-                                    "WG19_Sent"="WG19s Sent",
-                                    "OW1_Sent"="First Orders Sent",
-                                    "OW2_Sent"="Second Orders Sent",
+    NSABAN <- plyr::rename(NSABAN,c("InitiatedActivations"="Initiated Activations",
+                                    "MonthlyActivations"="Activations Towards Budget",
                                     "TotalGAR"="Total GAR $",
                                     "TotalVol"="Total Voluntary Direct",
                                     "TotalCollected"="Total Direct Collect",
@@ -893,6 +1008,7 @@ server <- function(input, output,session) {
                                     "SuccessRate"="Success Rate",
                                     "A.R"="Collector",
                                     "manager"="Manager"))
+   
     NSABAN <- NSABAN[NSABAN$Month == input$armonth,]
     
     NSABAN
@@ -903,26 +1019,26 @@ server <- function(input, output,session) {
   output$SABAN <- DT::renderDataTable({
     
     
-    table <- datatable(saban(),extensions = 'TableTools', rownames=FALSE,class = 'cell-border stripe',filter="top",
+    table <- datatable(saban(),extensions = c('FixedColumns','Buttons','ColReorder','KeyTable','RowReorder','Scroller'), rownames=FALSE,class = 'cell-border stripe',filter="top",
                        options = list(
                          searching=TRUE,
                          autoWidth=TRUE,
-                         paging=F,
-                         
-                         "sDom" = 'T<"clear">lfrtip',
-                         "oTableTools" = list(
-                           "sSwfPath" = "//cdnjs.cloudflare.com/ajax/libs/datatables-tabletools/2.1.5/swf/copy_csv_xls.swf",
-                           "aButtons" = list(
-                             "copy",
-                             "print",
-                             list("sExtends" = "collection",
-                                  "sButtonText" = "Save",
-                                  "aButtons" = c("csv","xls"))))))
+                         keys=TRUE,
+                         scroller=T,
+                         scrollY=450,
+                         rowReorder=T,
+                         colReorder = TRUE,
+                         paging=T,
+                         dom = 'Bfrtip',
+                         scrollX=T,
+                         buttons = c('copy', 'csv', 'excel', 'pdf', 'print',I('colvis'))
+                       ))
     
     table <- formatCurrency(table,"Total GAR $")
     table <- formatCurrency(table,"Total Voluntary Direct")
     table <- formatCurrency(table,"Total Direct Collect")
     table <- formatPercentage(table,"Success Rate",digits=2)
+    table <- formatPercentage(table,"Efficiency",digits=2)
     
     table
   })
@@ -932,14 +1048,14 @@ server <- function(input, output,session) {
     VPUTIN <- read.csv("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/AWG_CLIENT.csv", stringsAsFactors=TRUE)
     
     
-    VPUTIN <- VPUTIN %>% select(CM_CLIENT,Month, MonthlyActivations,TotalActivations,WG19_Sent,
+    VPUTIN <- VPUTIN %>% select(CM_CLIENT,Month, MonthlyActivations,TotalActivations,
                                 OW1_Sent,OW2_Sent,TotalGAR,TotalVol,TotalCollected,Resolutions,
                                 SuccessRate)
     
     VPUTIN <- plyr::rename(VPUTIN,c("CM_CLIENT"="Client",
                                     "MonthlyActivations"="Activations",
                                     "TotalActivations"="Activations Since Start",
-                                    "WG19_Sent"="WG19s Sent",
+                  
                                     "OW1_Sent"="First Orders Sent",
                                     "OW2_Sent"="Second Orders Sent",
                                     "TotalGAR"="Total GAR $",
@@ -947,6 +1063,8 @@ server <- function(input, output,session) {
                                     "TotalCollected"="Total Direct Collect",
                                     "Resolutions"="Total Payers",
                                     "SuccessRate"="Success Rate"))
+    VPUTIN <- VPUTIN[VPUTIN$Client %in% c("7222","C7222","B7222","W7222","S7222","8035"),]
+    VPUTIN <- VPUTIN[!is.na(VPUTIN$Month),]
     VPUTIN <- VPUTIN[VPUTIN$Month == input$ofmonth,]
     
     VPUTIN
@@ -955,21 +1073,20 @@ server <- function(input, output,session) {
   
   
   output$PUTIN <- DT::renderDataTable({
-    table <- datatable(putin(),extensions = 'TableTools', rownames=FALSE,class = 'cell-border stripe',filter="top",
+    table <- datatable(putin(),extensions = c('FixedColumns','Buttons','ColReorder','KeyTable','RowReorder','Scroller'), rownames=FALSE,class = 'cell-border stripe',filter="top",
                        options = list(
                          searching=TRUE,
                          autoWidth=TRUE,
-                         paging=F,
-                         
-                         "sDom" = 'T<"clear">lfrtip',
-                         "oTableTools" = list(
-                           "sSwfPath" = "//cdnjs.cloudflare.com/ajax/libs/datatables-tabletools/2.1.5/swf/copy_csv_xls.swf",
-                           "aButtons" = list(
-                             "copy",
-                             "print",
-                             list("sExtends" = "collection",
-                                  "sButtonText" = "Save",
-                                  "aButtons" = c("csv","xls"))))))
+                         keys=TRUE,
+                         scroller=T,
+                         scrollY=450,
+                         rowReorder=T,
+                         colReorder = TRUE,
+                         paging=T,
+                         dom = 'Bfrtip',
+                         scrollX=T,
+                         buttons = c('copy', 'csv', 'excel', 'pdf', 'print',I('colvis'))
+                       ))
     
     table <- formatCurrency(table,"Total GAR $")
     table <- formatCurrency(table,"Total Voluntary Direct")
@@ -984,7 +1101,10 @@ server <- function(input, output,session) {
   
   
   
-  
+  lowhornrgr <- reactive({
+    RGR <- read.csv("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/INPUT/RGR_.csv", stringsAsFactors=FALSE)
+    RGR
+  })
   
   
   
@@ -993,16 +1113,21 @@ server <- function(input, output,session) {
       paste("Manual Submissions", '.csv', sep='') 
     },
     content = function(file) {
-      write.csv(RGR, file)
+      write.csv(lowhornrgr(), file)
     }
   )
+jlowpoe <- reactive({
   
+  POE <- read.csv("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/INPUT/POE_.csv", stringsAsFactors=FALSE)
+})  
+
   output$allpoedown <- downloadHandler(
+    
     filename = function() { 
-      paste("Manual Submissions", '.csv', sep='') 
+      paste("Master_POE", '.csv', sep='') 
     },
     content = function(file) {
-      write.csv(POE, file)
+      write.csv(jlowpoe(), file)
     }
   )
   
@@ -1010,6 +1135,8 @@ server <- function(input, output,session) {
 
   
   output$plot <- renderPlotly({
+    NINE <- read.csv("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/Theta.csv", stringsAsFactors=TRUE)
+    
     p <- NINE %>% count(Month, RHBMONTH)
     p <- p[!p$RHBMONTH %in%"",]
     
@@ -1020,15 +1147,19 @@ server <- function(input, output,session) {
     p <- left_join(p,acts,by="Month")
     rm(acts)
     
-    p$Month <- factor(p$Month,levels= c("October 2016","November 2016",
-                                        "December 2016","January 2017",
+    p$Month <- factor(p$Month,levels= c("January 2017",
                                         "February 2017","March 2017",
-                                        "April 2017","May 2017"))
-    p$RHBMONTH <- factor(p$RHBMONTH,levels= c("October 2016","November 2016",
-                                              "December 2016","January 2017",
+                                        "April 2017","May 2017",
+                                        "June 2017","July 2017",'August 2017',
+                                        'September 2017','October 2017'))
+    p$RHBMONTH <- factor(p$RHBMONTH,levels= c("January 2017",
                                               "February 2017","March 2017",
-                                              "April 2017","May 2017"))
+                                              "April 2017","May 2017",
+                                              "June 2017","July 2017",'August 2017',
+                                              'September 2017','October 2017'))
+    
     p <- p[!is.na(p$RHBMONTH),]
+    p <- p[!is.na(p$Month),]
     p <- p %>%
       mutate(Percent = n/Activations)
     
@@ -1040,7 +1171,7 @@ server <- function(input, output,session) {
 
      
     
-    plot <- ggplotly(p)
+    plot <- (p)
     plot
   })
   
@@ -1051,6 +1182,121 @@ server <- function(input, output,session) {
     session$sendCustomMessage(type="jsondata",data)
     
     })
+  
+  longjohnsilver <- reactive({
+    MGRStats <- read.csv("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/MGRStats.csv")
+    MGRStats <- MGRStats[MGRStats$Month %in% input$MGRStatsMth,]
+    MGRStats <- select(MGRStats,-TotalCollected,-TotalVol,-TotalGAR)
+    MGRStats <- plyr::rename(MGRStats,c("manager"="Manager",
+                                        "Monthly_Activations"="Monthly Activations",
+                                        "TotalActivations"="Total Activations",
+                                        "WG19_Sent"="WG19 Sent",
+                                        "OW1_Sent" = "OW1 Sent",
+                                        "OW2_Sent" = "OW2 Sent",
+                                        "SuccessRate" = "Success Rate"))
+  
+  })
+  
+  
+  output$jimmybuffet <- DT::renderDataTable({
+    table <- datatable(longjohnsilver(),extensions = c('FixedColumns','Buttons','ColReorder','KeyTable','RowReorder','Scroller'), rownames=FALSE,class = 'cell-border stripe',filter="top",
+                       options = list(
+                         searching=TRUE,
+                         autoWidth=TRUE,
+                         keys=TRUE,
+                         scroller=T,
+                         scrollY=450,
+                         rowReorder=T,
+                         colReorder = TRUE,
+                         paging=T,
+                         dom = 'Bfrtip',
+                         scrollX=T,
+                         buttons = c('copy', 'csv', 'excel', 'pdf', 'print',I('colvis'))
+                       ))
+    
+
+    table <- formatPercentage(table,"Success Rate",digits=2)
+    
+    
+    table
+  })  
+  
+  output$TimeZ <- renderText({
+    time <- read.table("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/time.csv", header=TRUE, dec=",", quote="\"", stringsAsFactors=FALSE)
+    time <- time[1,1]
+    time
+  })
+  
+  
+  joe <- reactive({
+    POEMAST <- read.csv("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/POEMAST.csv", stringsAsFactors=F)
+    POEMAST <- POEMAST[POEMAST$FILE == input$filez,]
+   # POEMAST <- select(POEMAST -BATCH)
+    POEMAST <- plyr::rename(POEMAST,c("CM_CLIENT"="Client",
+                                      "TYPE"="Type",
+                                      "EMP.VER"="Emp Ver",
+                                      "FILE"="File",
+                                      "EMPLOYER_NAME"="Employer",
+                                      "EMPLOYER_ADDRESS1"="Address 1",
+                                      "EMPLOYER_ADDRESS2"="Address 2",
+                                      "EMPLOYER_CITY"="City",
+                                      "EMPLOYER_STATE"="State",
+                                      "EMPLOYER_POSTAL_CODE"="Zip",
+                                      "POE.PHONE"="Phone"))
+   POEMAST <- POEMAST[,-2]
+   
+  })
+  
+  output$joetable <- DT::renderDataTable({
+    table <- datatable(joe(),extensions = c('FixedColumns','Buttons','ColReorder','KeyTable','RowReorder','Scroller'), rownames=FALSE,class = 'cell-border stripe',filter="top",
+                       options = list(
+                         searching=TRUE,
+                         autoWidth=TRUE,
+                         keys=TRUE,
+                         scroller=T,
+                         scrollY=450,
+                         rowReorder=T,
+                         colReorder = TRUE,
+                         paging=T,
+                         dom = 'Bfrtip',
+                         scrollX=T,
+                         buttons = c('copy', 'csv', 'excel', 'pdf', 'print',I('colvis'))
+                       ))
+  
+    
+    
+    table
+  })  
+  
+  nineteenwork <- reactive({
+    WorkList <- read.csv("//KNX3IT/AWG Management/RGR/Activation Needs Dashboard/Data/WorkList.csv")
+    WorkList$ED_AWG_CREDIT_AR <- as.factor(as.character(WorkList$ED_AWG_CREDIT_AR))
+    WorkList$ED_ACCT_ACT_DATE <- as.Date(WorkList$ED_ACCT_ACT_DATE,"%Y-%m-%d")
+    WorkList
+  })
+  
+  output$wg19worklist <- DT::renderDataTable({
+    table <- datatable(nineteenwork(),extensions = c('FixedColumns','Buttons','ColReorder','KeyTable','RowReorder','Scroller'), rownames=FALSE,class = 'cell-border stripe',filter="top",
+                       options = list(
+                         searching=TRUE,
+                         autoWidth=TRUE,
+                         keys=TRUE,
+                         scroller=T,
+                         scrollY=450,
+                         rowReorder=T,
+                         colReorder = TRUE,
+                         paging=T,
+                         dom = 'Bfrtip',
+                         scrollX=T,
+                         buttons = c('copy', 'csv', 'excel', 'pdf', 'print',I('colvis'))
+                       ))
+    
+    
+    
+    table
+  })  
+  
+
   
 }
 shinyApp(ui, server)
